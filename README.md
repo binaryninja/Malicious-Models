@@ -27,7 +27,7 @@ This repository includes an example of a malicious model using PyTorch. The exam
 ### Usage
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/malicious-models-research.git
+    git clone https://github.com/binaryninja/malicious-models-research.git
     ```
 2. Navigate to the example directory:
     ```bash
@@ -42,6 +42,3 @@ This repository includes an example of a malicious model using PyTorch. The exam
     python test_model.py
     ```
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

